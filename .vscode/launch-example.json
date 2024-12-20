@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CmdLine-test-args",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["@./test-gmme-pylib/opt/custperf.opt"]
+        },
+        {
+            "name": "CmdLine-test-env",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {"CMDLINE_TESTOPTFILE": "./Utils/CmdLineTest/custperf.opt"}
+        }
+    ]
+}
