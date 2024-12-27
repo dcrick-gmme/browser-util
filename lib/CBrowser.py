@@ -13,6 +13,7 @@
 #===============================================================================
 
 import glob
+import jmespath
 import json
 import os
 import platform
@@ -50,23 +51,27 @@ class CBrowser():
     #---------------------------------------------------------------------------
     m_dbgOn = False
     m_isInit = False
-#    m_opts = {}
 
     m_browser = None
+    m_user = None
 
 
     #---------------------------------------------------------------------------
     #-- ctor
     #---------------------------------------------------------------------------
-    def __init__(self, a_browser = None, a_user = None, a_dbgOn = False):
-        self.m_isInit = True
+    def __init__(self, a_browser:str = None, a_user:str = None, a_dbgOn:bool = False):
         self.m_dbgOn = a_dbgOn
 
         if a_browser != None: self.Load(a_browser, a_user)
 
 
     #---------------------------------------------------------------------------
-    #-- Load
+    #-- Load::
+    #--
+    #-- Desc:
+    #--     Scan browser os folder for all 'Profile *' folders, and load the
+    #--     Preferences folder in each 'Profile *' folder, and pull the
+    #--     profile.name json value
     #---------------------------------------------------------------------------
     def Load(self, a_browser, a_user = None):
 #        self.m_isInit = True
@@ -92,10 +97,13 @@ class CBrowser():
         for l_entry in glob.glob(self.m_configpath + self.m_pathsep + "Profile *"):
             #-- load json files
             l_preferences = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Preferences")
-            l_bookmarks  = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Bookmarks")
+#            l_bookmarks  = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Bookmarks")
+
+#            with open(os.getcwd() + "\\tests\\bookmarks.json", "w") as f:
+#                json.dump(l_bookmarks, f, indent=4)
 
             l_id = os.path.basename(l_entry)
-            l_name = l_preferences['profile']['name']
+            l_name = jmespath.search("profile.name", l_preferences)
 
             self.m_profiles['id'][l_id] = {'name': l_name, 'preferences': l_preferences}
             self.m_profiles['name'][l_name] = {'id': l_id, 'preferences': l_preferences}

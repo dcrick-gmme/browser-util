@@ -17,14 +17,35 @@
 # $Log: $
 #===============================================================================
 
+#import jmespath
 #import json
 import os
 import sys
 
 from lib import CBrowser as CBrowser
 
+""" 
+l_file = os.getcwd() + "\\tests\\bookmarks.json"
+l_f = open(l_file, 'r')
+l_json = json.load(l_f)
+
+l_1 = "bookmark_bar.[*].name"
+
+l_r = jmespath.search("roots.bookmark_bar.children[?type=='folder'].[name,type,children]", l_json)
+
+print("we are here")
+ """
+
+#-- list bookmar_bar items:: "roots.bookmark_bar.children[*].name"
+#-- list bookmark_bar items and children:: "roots.bookmark_bar.children[*].[name,type,children]"
+#-- list bookmark_bar items and children folders:: "roots.bookmark_bar.children[?type=='folder'].[name,type,children]"
+#-- list bookmark_bar items with url and url:: "roots.bookmark_bar.children[?type=='url'].[name,type,url]"
+
 
 l_test = CBrowser.Create('chrome')
+print("we are here!!")
+
+
 #from gmmePylib.Utils.Object import Object
 #import gmmePylib.Utils.Object
 #import gmmePylib.Utils.CmdLine
