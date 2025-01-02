@@ -12,10 +12,12 @@
 # Description:
 #===============================================================================
 
-import glob
+#import glob
+import itertools
 import jmespath
 import json
 import os
+import pathlib
 import platform
 import time
 
@@ -25,10 +27,15 @@ from gmmePylib import *
 #-------------------------------------------------------------------------------
 #-- Module variables
 #-------------------------------------------------------------------------------
-cbrowser__ = {
+_cbrowser__ = {
     'os':       {
                     'windows':  {'envusername': 'USERNAME'},
                     'linux':    {'envusername': 'USER'},
+                },
+
+    'brave':   {
+                    'windows':  {'configPath': "C:\\Users\\{0}\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data"},
+                    'linux':    {'configPath': "/home/{0}/.config/BraveSoftware/Brave-Browser"},
                 },
 
     'chrome':   {
@@ -42,8 +49,10 @@ cbrowser__ = {
 }
 
 
+#C:\Users\dcrick\AppData\Local\Google\Chrome\User Data
+
 #-------------------------------------------------------------------------------
-#-- Class CmdLine
+#-- Class CBrowser
 #-------------------------------------------------------------------------------
 class CBrowser():
     #---------------------------------------------------------------------------
@@ -83,30 +92,45 @@ class CBrowser():
         #-----------------------------------------------------------------------
         #-- determine location for browser folder
         l_os = platform.system().lower()
-        self.m_user = os.environ.get(cbrowser__['os'][l_os]['envusername'])
+        self.m_user = os.environ.get(_cbrowser__['os'][l_os]['envusername'])
 
-        self.m_configpath = cbrowser__[self.m_browser][l_os]['configPath'].format(self.m_user)
+        self.m_configpath = _cbrowser__[self.m_browser][l_os]['configPath'].format(self.m_user)
         self.m_pathsep = os.path.sep
 
 
         #-----------------------------------------------------------------------
         #-- load profiles, which means:
         #-- 1. glob list of profile folders from browser config location
+        #--    including Default profile
         #-- 2. for each profile load preferences file
         self.m_profiles = {'id': {}, 'name': {}}
-        for l_entry in glob.glob(self.m_configpath + self.m_pathsep + "Profile *"):
+
+        l_path = pathlib.Path(self.m_configpath)
+        l_glob = list(
+            itertools.chain.from_iterable(
+                l_path.glob(l_pattern) for l_pattern in ["Default", "Profile *"]
+            )
+        )
+
+        for l_profilePath in l_glob:
+            #-- load json preferences file
+            print(l_profilePath)
+#            l_preferences = Utils.Other.OSLoadJson(entry + self.m_pathsep + "Preferences")
+
+
+#        for l_entry in glob.glob(self.m_configpath + self.m_pathsep + "Profile *"):
             #-- load json files
-            l_preferences = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Preferences")
-#            l_bookmarks  = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Bookmarks")
+#            l_preferences = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Preferences")
+##            l_bookmarks  = Utils.Other.OSLoadJson(l_entry + self.m_pathsep + "Bookmarks")
 
-#            with open(os.getcwd() + "\\tests\\bookmarks.json", "w") as f:
-#                json.dump(l_bookmarks, f, indent=4)
+##            with open(os.getcwd() + "\\tests\\bookmarks.json", "w") as f:
+##                json.dump(l_bookmarks, f, indent=4)
 
-            l_id = os.path.basename(l_entry)
-            l_name = jmespath.search("profile.name", l_preferences)
+#            l_id = os.path.basename(l_entry)
+#            l_name = jmespath.search("profile.name", l_preferences)
 
-            self.m_profiles['id'][l_id] = {'name': l_name, 'preferences': l_preferences}
-            self.m_profiles['name'][l_name] = {'id': l_id, 'preferences': l_preferences}
+#            self.m_profiles['id'][l_id] = {'name': l_name, 'preferences': l_preferences}
+#            self.m_profiles['name'][l_name] = {'id': l_id, 'preferences': l_preferences}
 
 
         print("we are here")
@@ -125,6 +149,14 @@ class CBrowser():
     #---------------------------------------------------------------------------
 #    def loadBrowser_(self):
 #        
+
+
+    #---------------------------------------------------------------------------
+    #-- Access methods
+    #---------------------------------------------------------------------------
+    def ProfileCount(self): return len(self.m_profiles['id'])
+    #def AccountsCount(self): return len(jmespath.search("profile.name", l_preferences))
+
 
 #-------------------------------------------------------------------------------
 #-- Create functions

@@ -43,6 +43,7 @@ print("we are here")
 
 
 l_test = CBrowser.Create('chrome')
+l_count = l_test.ProfileCount()
 print("we are here!!")
 
 
