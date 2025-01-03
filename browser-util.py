@@ -11,18 +11,91 @@
 #
 #   Required packages:
 #       -   pywin32
-#       -   GmmePylib
+#       -   gmmepylib
 #
 #===============================================================================
-# $Log: $
-#===============================================================================
 
-#import jmespath
-#import json
+from gmmePylib import *
+from lib import CBrowser as CBrowser
+
 import os
+import platform
 import sys
 
-from lib import CBrowser as CBrowser
+
+print("this is a test")
+
+
+#-------------------------------------------------------------------------------
+#-- program variables
+#-------------------------------------------------------------------------------
+#g_cmdline = None
+_o_buvars__ = {
+    'action': None,
+    'cmdline': None,
+    'browser': None,
+    'source': None,
+    'user': None,
+}
+
+
+#-- cmdline options:
+#-- -browser: browser to work with under current user
+#-- -user: user to find -browser setting under (default=current user)
+#-- -archive, -backup:  archive/backup browser settings files
+#-- -source, -src: specifies browser path
+#-- -target: path for archive/backup
+#-- -profile
+#-- -profiles list: list all profiles
+
+
+#-------------------------------------------------------------------------------
+#-- init_: initialize program
+#-------------------------------------------------------------------------------
+def init_():
+    #---------------------------------------------------------------------------
+    #-- initialize command line object
+    #---------------------------------------------------------------------------
+    l_cmdline = Utils.CmdLine.Create()
+    l_cmdline.AddArgs(sys.argv[1:])
+    _o_buvars__['cmdline'] = l_cmdline
+
+    #---------------------------------------------------------------------------
+    #-- process command line
+    #---------------------------------------------------------------------------
+    _o_buvars__['browser'] = l_cmdline.GetOptValue('-browser')
+    _o_buvars__['browsers'] = l_cmdline.IsOpt('-browsers')
+    _o_buvars__['profiles'] = l_cmdline.GetOptValue('-profiles')
+                                                                      
+
+#-------------------------------------------------------------------------------
+#-- process_: process based on command line options
+#-------------------------------------------------------------------------------
+def process_(a_user: str = None):
+    #-- see if we are listing valid browsers
+    if _o_buvars__['browsers']:
+        l_browsers = CBrowser.CBrowsersSupported(a_user)
+        print("browsers -- beg:")
+        print("   user = " + l_browsers.user)
+        print("   os = " + l_browsers.os)
+        print("   list -- beg:")
+        for l_browser in CBrowser.CBrowsersSupported("DavidCrickenberger").items:
+            print("      " + l_browser.name + " ==> " + l_browser.configpath)
+        print("   list -- end:")
+        print("browsers -- end:")
+
+#    print("we are here")
+
+
+#-------------------------------------------------------------------------------
+#-- main processing
+#-------------------------------------------------------------------------------
+init_()
+process_()
+process_("DavidCrickenberger")
+print("we are here")
+
+
 
 """ 
 l_file = os.getcwd() + "\\tests\\bookmarks.json"
@@ -30,11 +103,10 @@ l_f = open(l_file, 'r')
 l_json = json.load(l_f)
 
 l_1 = "bookmark_bar.[*].name"
-
 l_r = jmespath.search("roots.bookmark_bar.children[?type=='folder'].[name,type,children]", l_json)
 
 print("we are here")
- """
+"""
 
 #-- list bookmar_bar items:: "roots.bookmark_bar.children[*].name"
 #-- list bookmark_bar items and children:: "roots.bookmark_bar.children[*].[name,type,children]"
@@ -42,9 +114,9 @@ print("we are here")
 #-- list bookmark_bar items with url and url:: "roots.bookmark_bar.children[?type=='url'].[name,type,url]"
 
 
-l_test = CBrowser.Create('chrome')
-l_count = l_test.ProfileCount()
-print("we are here!!")
+#l_test = CBrowser.Create('chrome')
+#l_count = l_test.ProfileCount()
+#print("we are here!!")
 
 
 #from gmmePylib.Utils.Object import Object
@@ -116,7 +188,7 @@ from gmmePylib import *
 #l_tclass2 = TestClass2()
 
 
-print("we are")
+#print("we are")
 
 #import gmmePyLib.BatchApp
 #from gmmePyLib import Utils

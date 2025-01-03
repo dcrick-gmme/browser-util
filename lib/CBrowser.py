@@ -12,6 +12,9 @@
 # Description:
 #===============================================================================
 
+from dataclasses import dataclass
+from gmmePylib import *
+
 #import glob
 import itertools
 import jmespath
@@ -20,8 +23,6 @@ import os
 import pathlib
 import platform
 import time
-
-from gmmePylib import *
 
 
 #-------------------------------------------------------------------------------
@@ -46,6 +47,8 @@ _cbrowser__ = {
                     'windows':  {'configPath': "C:\\Users\\{0}\\AppData\\Local\\Microsoft\\Edge\\User Data"},
 #                            'linux': {'configPath': "/home/{0}/.config/google-chrome"},
                 },
+
+    'supported':    ['brave','chrome','edge']
 }
 
 
@@ -58,18 +61,19 @@ class CBrowser():
     #---------------------------------------------------------------------------
     #-- Members
     #---------------------------------------------------------------------------
-    m_dbgOn = False
-    m_isInit = False
+    _m_dbgOn: bool = False
+    _m_isInit: bool = False
 
-    m_browser = None
-    m_user = None
+    _m_browser: str = None
+    _m_configpath: str = None
+    _m_user: str = None
 
 
     #---------------------------------------------------------------------------
     #-- ctor
     #---------------------------------------------------------------------------
     def __init__(self, a_browser:str = None, a_user:str = None, a_dbgOn:bool = False):
-        self.m_dbgOn = a_dbgOn
+        self._m_dbgOn = a_dbgOn
 
         if a_browser != None: self.Load(a_browser, a_user)
 
@@ -85,16 +89,16 @@ class CBrowser():
     def Load(self, a_browser, a_user = None):
 #        self.m_isInit = True
 
-        self.m_browser = a_browser.lower()
-        self.m_user = a_user
+        self._m_browser = a_browser.lower()
+        self._m_user = a_user
 
 
         #-----------------------------------------------------------------------
         #-- determine location for browser folder
         l_os = platform.system().lower()
-        self.m_user = os.environ.get(_cbrowser__['os'][l_os]['envusername'])
+        self._m_user = os.environ.get(_cbrowser__['os'][l_os]['envusername'])
 
-        self.m_configpath = _cbrowser__[self.m_browser][l_os]['configPath'].format(self.m_user)
+        self._m_configpath = _cbrowser__[self.m_browser][l_os]['configPath'].format(self.m_user)
         self.m_pathsep = os.path.sep
 
 
@@ -163,3 +167,58 @@ class CBrowser():
 #-------------------------------------------------------------------------------
 def Create(a_browser = None, a_user = None, a_dbgOn = False):
     return CBrowser(a_browser, a_user, a_dbgOn)
+
+
+#-------------------------------------------------------------------------------
+#-- support functions
+#-------------------------------------------------------------------------------
+def ConfigPath(a_browser:str, a_os:str = platform.system().lower()):    return _cbrowser__[a_browser]['config']
+
+
+#-------------------------------------------------------------------------------
+#-- dataclass:
+#--     CBrowsersSupportedItem
+#--     CBrowsersSupported
+#-------------------------------------------------------------------------------
+@dataclass
+class CBrowsersSupportedItem:
+    name: str = None
+    configpath: str = None
+
+    def __init__(self, a_name: str, a_configpath: str):
+        self.name = a_name
+        self.configpath = a_configpath
+
+@dataclass
+class CBrowsersSupported:
+    items: list = None
+    os: str = platform.system().lower()
+    user: str = None
+
+    def __init__(self, a_user: str = None):
+        self.items = []
+        if a_user != None:
+            self.user = a_user
+        else:
+            self.user = os.environ.get(_cbrowser__['os'][self.os]['envusername'])
+        for l_browser in _cbrowser__['supported']:
+            self.items.append(CBrowsersSupportedItem(l_browser, _cbrowser__[l_browser][self.os]['configPath'].format(self.user)))
+
+
+
+
+
+
+#@dataclass(frozen=True)
+#@dataclass
+#class CBrowsersSupported:
+#    blist: list[int] = []
+#    blist: list[CBrowsersSupportedItem] = []
+#    user: str = None
+
+#    def __init__(self, a_user: str = None):
+#        self.user = a_user
+
+
+#def Supported(a_user:str = None):
+#    return _cbrowser__['supported']

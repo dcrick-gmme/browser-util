@@ -18,8 +18,9 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "${workspaceFolder}",
-            "args": ["-test1 test1 -test2 -test3 abcd"]
+            "args": ["-browsers"]
         },
+        //"args": ["-test1 test1 -test2 -test3 abcd"]
         //"args": ["-test1", "test1", "-test2", "-test3", "abcd"]
         //        "args": ["@./test-gmme-pylib/opt/custperf.opt"]
     ]
