@@ -176,49 +176,86 @@ def ConfigPath(a_browser:str, a_os:str = platform.system().lower()):    return _
 
 
 #-------------------------------------------------------------------------------
-#-- dataclass:
+#-- dataclasses:
 #--     CBrowsersSupportedItem
 #--     CBrowsersSupported
 #-------------------------------------------------------------------------------
 @dataclass
-class CBrowsersSupportedItem:
+class CBrowserProfileItem:
+    id: str = None
     name: str = None
     configpath: str = None
 
-    def __init__(self, a_name: str, a_configpath: str):
+    def __init__(self, a_configpath: pathlib.Path):
+        self.id = a_configpath.name
+        self.configpath = str(a_configpath)
+
+        l_preferences = Utils.Other.OSLoadJson(self.configpath + os.path.sep + "Preferences")
+        self.name = jmespath.search("profile.name", l_preferences)
+
+
+@dataclass
+class CBrowserProfiles:
+    items: list = None
+    itemsById: dict = None
+    itemsByName: dict = None
+    configpath: str = None
+
+    def __init__(self, a_configpath: str):
+        self.items = []
+        self.itemsById = {}
+        self.itemsByName = {}
+
+        #-----------------------------------------------------------------------
+        #-- load profiles
+        l_path = pathlib.Path(a_configpath)
+        l_glob = list(
+            itertools.chain.from_iterable(
+                l_path.glob(l_pattern) for l_pattern in ["Default", "Profile *"]
+            )
+        )
+
+        #-----------------------------------------------------------------------
+        #-- loop thru profiles
+        for l_profilePath in l_glob:
+            l_profileItem = CBrowserProfileItem(l_profilePath)
+            self.items.append(l_profileItem)
+            self.itemsById[l_profileItem.id] = l_profileItem
+            self.itemsByName[l_profileItem.name] = l_profileItem
+
+
+@dataclass
+class CBrowsersSupportedItem:
+    name: str = None
+    configpath: str = None
+    profiles: CBrowserProfiles = None
+
+    def __init__(self, a_name: str, a_configpath: str, a_profiles: bool = False):
+        #-----------------------------------------------------------------------
+        #-- initalize
         self.name = a_name
         self.configpath = a_configpath
+        if a_profiles:
+            self.proifles = CBrowserProfiles(self.configpath)
+
 
 @dataclass
 class CBrowsersSupported:
     items: list = None
     os: str = platform.system().lower()
     user: str = None
+    profiles: CBrowserProfiles = None
 
-    def __init__(self, a_user: str = None):
+    def __init__(self, a_user: str = None, a_profiles: bool = False):
+        #-----------------------------------------------------------------------
+        #-- load browsers that are found
         self.items = []
         if a_user != None:
             self.user = a_user
         else:
             self.user = os.environ.get(_cbrowser__['os'][self.os]['envusername'])
         for l_browser in _cbrowser__['supported']:
-            self.items.append(CBrowsersSupportedItem(l_browser, _cbrowser__[l_browser][self.os]['configPath'].format(self.user)))
+            self.items.append(CBrowsersSupportedItem(l_browser,
+                                                     _cbrowser__[l_browser][self.os]['configPath'].format(self.user),
+                                                     a_profiles))
 
-
-
-
-
-
-#@dataclass(frozen=True)
-#@dataclass
-#class CBrowsersSupported:
-#    blist: list[int] = []
-#    blist: list[CBrowsersSupportedItem] = []
-#    user: str = None
-
-#    def __init__(self, a_user: str = None):
-#        self.user = a_user
-
-
-#def Supported(a_user:str = None):
-#    return _cbrowser__['supported']

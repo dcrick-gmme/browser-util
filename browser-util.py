@@ -15,6 +15,7 @@
 #
 #===============================================================================
 
+from dataclasses import dataclass
 from gmmePylib import *
 from lib import CBrowser as CBrowser
 
@@ -23,20 +24,32 @@ import platform
 import sys
 
 
-print("this is a test")
+#print("this is a test")
 
 
 #-------------------------------------------------------------------------------
 #-- program variables
 #-------------------------------------------------------------------------------
 #g_cmdline = None
-_o_buvars__ = {
-    'action': None,
-    'cmdline': None,
-    'browser': None,
-    'source': None,
-    'user': None,
-}
+#_o_buvars__ = {
+#    'action': None,
+#    'cmdline': None,
+#    'backup': False,
+#    'browser': None,
+#    'source': None,
+#    'user': None,
+#}
+
+
+@dataclass
+class _o_buvars__:
+    action: str = None,
+    cmdline: Utils.CmdLine = None,
+    backup: bool =  False,
+    browser: str =  None,
+    source: str =  None,
+    user: str =  None,
+
 
 
 #-- cmdline options:
@@ -58,14 +71,22 @@ def init_():
     #---------------------------------------------------------------------------
     l_cmdline = Utils.CmdLine.Create()
     l_cmdline.AddArgs(sys.argv[1:])
-    _o_buvars__['cmdline'] = l_cmdline
+    _o_buvars__.cmdline = l_cmdline
+#    _o_buvars__['cmdline'] = l_cmdline
 
     #---------------------------------------------------------------------------
     #-- process command line
     #---------------------------------------------------------------------------
-    _o_buvars__['browser'] = l_cmdline.GetOptValue('-browser')
-    _o_buvars__['browsers'] = l_cmdline.IsOpt('-browsers')
-    _o_buvars__['profiles'] = l_cmdline.GetOptValue('-profiles')
+    if l_cmdline.IsOpt('archive') or l_cmdline.IsOpt('-backup'):
+        _o_buvars__.backup = True
+#        _o_buvars__['backup'] = True
+
+    _o_buvars__.browser = l_cmdline.GetOptValue('-browser')
+    _o_buvars__.browsers = l_cmdline.IsOpt('-browsers')
+    _o_buvars__.profiles = l_cmdline.GetOptValue('-profiles')
+#    _o_buvars__['browser'] = l_cmdline.GetOptValue('-browser')
+#    _o_buvars__['browsers'] = l_cmdline.IsOpt('-browsers')
+#    _o_buvars__['profiles'] = l_cmdline.GetOptValue('-profiles')
                                                                       
 
 #-------------------------------------------------------------------------------
@@ -73,13 +94,13 @@ def init_():
 #-------------------------------------------------------------------------------
 def process_(a_user: str = None):
     #-- see if we are listing valid browsers
-    if _o_buvars__['browsers']:
-        l_browsers = CBrowser.CBrowsersSupported(a_user)
+    if _o_buvars__.browsers:
+        l_browsers = CBrowser.CBrowsersSupported(a_user, True)
         print("browsers -- beg:")
         print("   user = " + l_browsers.user)
         print("   os = " + l_browsers.os)
         print("   list -- beg:")
-        for l_browser in CBrowser.CBrowsersSupported("DavidCrickenberger").items:
+        for l_browser in CBrowser.CBrowsersSupported(a_user).items:
             print("      " + l_browser.name + " ==> " + l_browser.configpath)
         print("   list -- end:")
         print("browsers -- end:")
